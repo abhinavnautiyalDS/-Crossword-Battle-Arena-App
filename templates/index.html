@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossword Battle Arena</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <nav class="navbar navbar-expand-lg mb-4">
+            <div class="container">
+                <h1 class="navbar-brand mb-0">
+                    <i class="fas fa-chess-knight me-2"></i>
+                    Crossword Battle Arena
+                </h1>
+                <div class="navbar-nav ms-auto">
+                    <button class="btn btn-outline-secondary" onclick="showStats()">
+                        <i class="fas fa-chart-bar me-1"></i>Stats
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Game Setup -->
+        <div id="game-setup" class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h2 class="card-title mb-4">
+                                <i class="fas fa-play-circle me-2"></i>
+                                Start Your Battle
+                            </h2>
+                            
+                            <!-- Difficulty Selection -->
+                            <div class="mb-4">
+                                <h5 class="mb-3">Choose Difficulty</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <button class="btn btn-outline-success btn-lg w-100 difficulty-btn" 
+                                                data-difficulty="easy" onclick="selectDifficulty('easy')">
+                                            <i class="fas fa-seedling d-block mb-2"></i>
+                                            <strong>Easy</strong>
+                                            <small class="d-block">Simple words, 3s AI delay</small>
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-outline-warning btn-lg w-100 difficulty-btn active" 
+                                                data-difficulty="medium" onclick="selectDifficulty('medium')">
+                                            <i class="fas fa-mountain d-block mb-2"></i>
+                                            <strong>Medium</strong>
+                                            <small class="d-block">Moderate challenge, 2s AI delay</small>
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-outline-danger btn-lg w-100 difficulty-btn" 
+                                                data-difficulty="hard" onclick="selectDifficulty('hard')">
+                                            <i class="fas fa-fire d-block mb-2"></i>
+                                            <strong>Hard</strong>
+                                            <small class="d-block">Advanced vocabulary, 1s AI delay</small>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+            <!-- Game Mode Selection -->
+            <div class="mb-4">
+                <h5 class="mb-3">Choose Game Mode</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-primary btn-lg w-100 mode-btn active" 
+                                data-mode="quick_play" onclick="selectMode('quick_play')">
+                            <i class="fas fa-bolt d-block mb-2"></i>
+                            <strong>Quick Play</strong>
+                            <small class="d-block">Race to 100 points</small>
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-info btn-lg w-100 mode-btn" 
+                                data-mode="tournament" onclick="selectMode('tournament')">
+                            <i class="fas fa-trophy d-block mb-2"></i>
+                            <strong>Tournament</strong>
+                            <small class="d-block">Complete all clues</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" onclick="startGame()">
+                <i class="fas fa-play me-2"></i>
+                Start Battle
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+        <!-- Game Board -->
+        <div id="game-board" class="container d-none">
+            <!-- Score Panel -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <div class="score-section player-score">
+                                        <h4 class="mb-1">
+                                            <i class="fas fa-user me-2"></i>You
+                                        </h4>
+                                        <div class="score-display" id="player-score">0</div>
+                                        <div class="streak-display">
+                                            Streak: <span id="player-streak">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <div class="turn-indicator">
+                                        <div id="turn-display" class="mb-2">
+                                            <i class="fas fa-hourglass-half me-2"></i>
+                                            <span id="turn-text">Your Turn</span>
+                                        </div>
+                                        <div class="puzzle-title">
+                                            <h5 id="puzzle-title" class="mb-0"></h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="score-section ai-score">
+                                        <h4 class="mb-1">
+                                            <i class="fas fa-robot me-2"></i>AI
+                                        </h4>
+                                        <div class="score-display" id="ai-score">0</div>
+                                        <div class="ai-status">
+                                            <span id="ai-status">Ready</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crossword Grid -->
+            <div class="row mb-4">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-th me-2"></i>
+                                Crossword Grid
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="crossword-grid" class="crossword-grid">
+                                <!-- Grid will be generated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i>
+                                Clues
+                            </h5>
+                            <div class="hint-counter">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                Hints: <span id="hints-remaining">3</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="clues-container" class="clues-container">
+                                <!-- Clues will be generated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <button class="btn btn-secondary me-2" onclick="resetGame()">
+                        <i class="fas fa-redo me-2"></i>New Game
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="pauseGame()">
+                        <i class="fas fa-pause me-2"></i>Pause
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div class="modal fade" id="gameOverModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-flag-checkered me-2"></i>
+                            Game Over
+                        </h5>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="winner-display" class="mb-3">
+                            <!-- Winner info will be inserted here -->
+                        </div>
+                        <div id="final-scores" class="mb-3">
+                            <!-- Final scores will be inserted here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-primary" onclick="newGame()">
+                            <i class="fas fa-play me-2"></i>Play Again
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Answer Modal -->
+        <div class="modal fade" id="answerModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-edit me-2"></i>
+                            Submit Answer
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <strong>Clue:</strong>
+                            <p id="modal-clue-text" class="mt-2"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="answer-input" class="form-label">Your Answer:</label>
+                            <input type="text" class="form-control" id="answer-input" placeholder="Enter your answer...">
+                            <div class="form-text">
+                                Length: <span id="answer-length">?</span> letters
+                            </div>
+                            <div id="hint-display" class="mt-2 text-info d-none">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                Hint: <span id="hint-text"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" onclick="getHint()">
+                            <i class="fas fa-lightbulb me-2"></i>Get Hint
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitAnswer()">
+                            <i class="fas fa-check me-2"></i>Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Modal -->
+        <div class="modal fade" id="statsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Game Statistics
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="stat-card text-center">
+                                    <div class="stat-number" id="total-games">0</div>
+                                    <div class="stat-label">Total Games</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card text-center">
+                                    <div class="stat-number text-success" id="player-wins">0</div>
+                                    <div class="stat-label">Wins</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card text-center">
+                                    <div class="stat-number text-danger" id="ai-wins">0</div>
+                                    <div class="stat-label">Losses</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card text-center">
+                                    <div class="stat-number text-info" id="win-rate">0%</div>
+                                    <div class="stat-label">Win Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="small-stat">
+                                    <strong>Average Player Score:</strong>
+                                    <span id="avg-player-score" class="float-end">0</span>
+                                </div>
+                                <div class="small-stat">
+                                    <strong>Average AI Score:</strong>
+                                    <span id="avg-ai-score" class="float-end">0</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Games by Difficulty:</h6>
+                                <div id="difficulty-breakdown">
+                                    <!-- Difficulty stats will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6>Recent Games:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Difficulty</th>
+                                        <th>Your Score</th>
+                                        <th>AI Score</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-games-table">
+                                    <!-- Recent games will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay d-none">
+            <div class="loading-content">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="mt-3">
+                    <span id="loading-text">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Game JavaScript -->
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+    
+    <!-- Initialize Game -->
+    <script>
+        // Initialize the game when page loads
+        let game;
+        document.addEventListener('DOMContentLoaded', function() {
+            game = new CrosswordGame();
+        });
+        
+        // Global functions called by HTML elements
+        function selectDifficulty(difficulty) {
+            game.selectDifficulty(difficulty);
+        }
+        
+        function selectMode(mode) {
+            game.selectMode(mode);
+        }
+        
+        function startGame() {
+            game.startGame();
+        }
+        
+        function submitAnswer() {
+            game.submitAnswer();
+        }
+        
+        function getHint() {
+            game.getHint();
+        }
+        
+        function resetGame() {
+            game.resetGame();
+        }
+        
+        function newGame() {
+            game.newGame();
+        }
+        
+        function pauseGame() {
+            game.pauseGame();
+        }
+        
+        function showStats() {
+            game.showStats();
+        }
+    </script>
+</body>
+</html>
